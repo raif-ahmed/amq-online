@@ -1,0 +1,133 @@
+
+== Building the Publisher Subscriber Usecase
+As mentioned in the previous section, the main usecase is a Publisher Subscriber usecase.
+This usecase is built using Standard Address.
+
+I will not go too much in the details of the Infrastructure components as the focus here is the application part.
+
+=== Defining the needed Yamls
+As Discussed in concepts each Tenant (application in our case), will create following set of objects
+
+. AddressSpace
++
+[source,yaml]
+----
+apiVersion: enmasse.io/v1beta1
+kind: AddressSpace
+metadata:
+  name: dt-ar
+  namespace: amq-online-test
+spec:
+  type: standard
+  endpoints:
+    - name: messaging
+      service: messaging
+      expose:
+        type: route
+        annotations: {}
+        routeServicePort: amqps
+        routeTlsTermination: passthrough
+        loadBalancerPorts: []
+        loadBalancerSourceRanges: []
+      exports: []
+    - name: messaging-wss
+      service: messaging
+      expose:
+        type: route
+        annotations: {}
+        routeServicePort: https
+        routeTlsTermination: reencrypt
+        loadBalancerPorts: []
+        loadBalancerSourceRanges: []
+      exports: []
+    - name: console
+      service: console
+      expose:
+        type: route
+        annotations: {}
+        routeServicePort: https
+        routeTlsTermination: reencrypt
+        loadBalancerPorts: []
+        loadBalancerSourceRanges: []
+      exports: []
+  plan: standard-small
+  authenticationService:
+    name: standard-authservice
+  connectors: []
+----
+. Address
+In the Pub/Sub usecase we will need to create two Addresses; One which is the topic, and subscription for each durable subscriber we want.
+Please note that we are using Standard Plan and "Named" durable subscriptions is the way to achieve this durability.
++
+[source,yaml]
+----
+kind: Address
+apiVersion: enmasse.io/v1beta1
+metadata:
+  annotations:
+    enmasse.io/version: '0.30'
+spec:
+  address: AR-TEST-TOPIC-VNK
+  type: topic <1>
+  plan: standard-small-topic
+  forwarders: []
+----
+<1> This is the type of the Address is topic which will be used by producers
++
+[source,yaml]
+----
+kind: Address
+apiVersion: enmasse.io/v1beta1
+metadata:
+  annotations:
+    enmasse.io/version: '0.30'
+spec:
+  address: mysub
+  type: subscription <1>
+  plan: standard-small-subscription
+  topic: AR-TEST-TOPIC-VNK <2>
+  forwarders: []
+----
+<1> This is the subscription (or the durable consumer), that will be used by a specific consumer to be durable.
+<2> Reference to the topic, created in previous step.
+. Define MessageUser
++
+[source,yaml]
+----
+apiVersion: user.enmasse.io/v1beta1
+kind: MessagingUser
+metadata:
+  name: dt-ar.ar-user
+  namespace: amq-online-test
+spec:
+  username: ar-user
+  authentication:
+    type: password
+  authorization:
+    - addresses:
+        - '*'
+        - AR*
+        - mysub
+        - mysubscription
+      operations:
+        - recv
+        - send
+    - addresses: []
+      operations:
+        - manage
+    - addresses: []
+      operations:
+        - view
+----
+
+=== Building the Sample Java Code
+A full sample java code was built, you can find it at https://github.com/rahmed-rh/jms-demo
+One key point is that the producer should produce to topic using topic name
+and consumer should consume from subscription using (topic_name::subscription_name) but as **queue**.
+[source,java]
+----
+JMSProducer producer = new JMSProducer(connectionFactory, getTopic("AR-TEST-TOPIC-VNK")); <1>
+JMSConsumer durableConsumer1 = new JMSConsumer(connectionFactory, getQueue("AR-TEST-TOPIC-VNK::mysub")); <2>
+----
+<1> Produce using JMS Topic
+<2> Consume using JMS Queue
