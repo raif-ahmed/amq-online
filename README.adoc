@@ -1,5 +1,28 @@
-= Understanding AMQ Online Components
+:data-uri:
+:toc: left
+:markup-in-source: +verbatim,+quotes,+specialcharacters
+:source-highlighter: rouge
+:icons: font
+:stylesdir: stylesheets
+:stylesheet: colony.css
 
+= Understand AMQ Online
+
+.Goals
+
+* Understand the concepts of AMQ Online
+* How to use AMQ Online
+
+.References :
+** https://enmasse.io/documentation/master/openshift/[]
+** http://wei-meilin.blogspot.com/2019/01/amq-online-101-what-ive-learnt-from.html[]
+** https://developers.redhat.com/products/amq/hello-world-amq-online-openshift/[]
+** https://access.redhat.com/documentation/en-us/red_hat_amq/7.5/html/installing_and_managing_amq_online_on_openshift/[]
+** https://access.redhat.com/documentation/en-us/red_hat_amq/7.5/html/using_amq_online_on_openshift/[]
+
+:sectnums:
+
+== AMQ Online Components
 AMQ Online is a solution (Operator) to manage multiple components to provide the over all functionality of running self-service (Messaging as a Service) messaging platform on OpenShift
 
 
@@ -18,19 +41,25 @@ TIP: For more information regarding different AMQ separate products, please refe
 ==  Understanding AMQ Online Custom Types
 After installing AMQ Online it defines new types (CRDs) which we will try to briefly explain them.
 
-* AuthenticationService - Describes an authentication service instance used to authenticate massaging clients. This is simply your way to configure keycloak server itself.
+=== AuthenticationService
+Describes an authentication service instance used to authenticate massaging clients. This is simply your way to configure keycloak server itself.
 
-* AddressSpacePlan - Describes the messaging resources available for address spaces (will come later) using this plan, such as the available address plans and the amount of router and broker resources that can be used.
+===  AddressSpacePlan
+Describes the messaging resources available for address spaces (will come later) using this plan, such as the available address plans and the amount of router and broker resources that can be used.
 Think of it like the main quota control, it knows how much hardware can be used by referring to infrastructure configuration.
 
-* AddressPlan - Describes the messaging resources consumed by a particular address using this plan, such as what fraction of routers and brokers an address will use and other properties that should be set for multiple addresses.
+===  AddressPlan
+Describes the messaging resources consumed by a particular address using this plan, such as what fraction of routers and brokers an address will use and other properties that should be set for multiple addresses.
 
-* Infrastructure configuration - as name suggested, it configures the hardware resource allocated to the components, such as CPU. memory, storage of console, broker and router, also some other specific config too.
+=== Infrastructure configuration
+as name suggested, it configures the hardware resource allocated to the components, such as CPU. memory, storage of console, broker and router, also some other specific config too.
 it mainly two types;
 
-** StandardInfraConfig - This will allow you to host both AMQ Brokers, and AMQ Interconnect routes
+==== StandardInfraConfig
+This will allow you to host both AMQ Brokers, and AMQ Interconnect routes
 
-** BrokeredInfraConfig - This will allow you to host both AMQ Brokers only.
+==== BrokeredInfraConfig
+This will allow you to host both AMQ Brokers only.
 
 * Address Space - refer back to AddressSpacePlan and here the magic happen as it go and create AMQ broker pod and AMQ Interconnect Pod base on the type (standard or brokered), also it like them with keycloak (AuthenticationService) as authentication/authorization source, and do all needed configuration .
 * Address - the destinations which use the spinned pods from AddressSpace to configure broker or routers.
@@ -47,15 +76,13 @@ image::./images/20-Comp.png[]
 * In the standard address space, address plans for the queue address type may contain a field partitions, which allows a queue to be shared across multiple brokers for HA and improved performance. Specifying an amount of broker resource above 1 will automatically cause a queue to be partitioned.
 ====
 
-===  Understanding AMQ Online from Roles & Responsibilities point of View
+==  Understanding AMQ Online from Roles & Responsibilities point of View
 There are two main roles in AMQ Online;
 
-* Admins
-+
+=== Admins
 Admin does the installation of the platform foundation on OpenShift, they install all the basic elements that controls all the needed brokers, routers, user console and monitoring tools, and also takes care of setting up the authentication and authorization of who has access to the platform. We don't always have unlimited computing resource for all users, admin also has control over the resource limitation and create different plans that can apply to accompany different needs from users.
 
-* Developers / Application Owners / Tenants
-+
+=== Developers / Application Owners / Tenants
 They are the users of the platform, they will be creating "Address Space", and create destinations by applying the plans on top of it.  After the queue and topics are created, the tenants can go ahead and create credentials maps (MessagingUser) to different access roles, they can decide what account has access to admin console, which account has consume/produce right to any addresses(queues/ topics) in the Address Space. Please note, tenants will have no visibility to queue or topics of other Address Space, unless specially specified. Once the address are created and config correctly, application will be able to use the credential to read/write to the messaging address.
 
 
@@ -67,7 +94,7 @@ So A typical workflow will be;
 .. Define StandardInfraConfig(s) Or BrokeredInfraConfig(s)
 .. Define AddressSpacePlan
 .. Define AddressPlan
-. Each Tenant will create needed objects in his
+. Each Tenant will create needed objects in his own namespace
 .. Define AddressSpace
 .. Define Address
 .. Define MessageUser
@@ -75,7 +102,7 @@ So A typical workflow will be;
 
 IMPORTANT: Each application owner will create separate Address and AddressSapce in their namespace utilizing what Administrators created as infra objects.
 
-===  Understanding what is the difference between Standard and Brokered InfraConfig
+==  Understanding what is the difference between Standard and Brokered InfraConfig
 [id='ref-supported-features-table-{context}']
 .Supported features reference table
 [cols="25%a,25%a,25%a,25%a",options="header"]
@@ -103,7 +130,7 @@ IMPORTANT: Each application owner will create separate Address and AddressSapce 
 |===
 
 
-=== JMS clients and libraries
+== JMS clients and libraries
 There are multiple JMS Clients depending on the underlying Messaging Protocol (as shown in above table) each one have a set features and may have also some limitations.
 
 * Messaging Protocol
