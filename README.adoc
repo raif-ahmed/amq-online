@@ -13,12 +13,7 @@
 * Understand the concepts of AMQ Online
 * How to use AMQ Online
 
-.References :
-** https://enmasse.io/documentation/master/openshift/[]
-** http://wei-meilin.blogspot.com/2019/01/amq-online-101-what-ive-learnt-from.html[]
-** https://developers.redhat.com/products/amq/hello-world-amq-online-openshift/[]
-** https://access.redhat.com/documentation/en-us/red_hat_amq/7.5/html/installing_and_managing_amq_online_on_openshift/[]
-** https://access.redhat.com/documentation/en-us/red_hat_amq/7.5/html/using_amq_online_on_openshift/[]
+
 
 :sectnums:
 
@@ -45,8 +40,10 @@ After installing AMQ Online it defines new types (CRDs) which we will try to bri
 Describes an authentication service instance used to authenticate massaging clients. This is simply your way to configure keycloak server itself.
 
 ===  AddressSpacePlan
-Describes the messaging resources available for address spaces (will come later) using this plan, such as the available address plans and the amount of router and broker resources that can be used.
+Describes the messaging resources available for address spaces (will come later) using this plan (so it an aggregate of all <<AddressPlan>>),
+such as the available address plans and the amount of router and broker resources that can be used.
 Think of it like the main quota control, it knows how much hardware can be used by referring to infrastructure configuration.
+[IMPORTANT] It Defines the infrastructure to be deployed, and as it's name depicts "plan" it define quota restrictions (i.e., maximum number of addresses)
 
 ===  AddressPlan
 Describes the messaging resources consumed by a particular address using this plan, such as what fraction of routers and brokers an address will use and other properties that should be set for multiple addresses.
@@ -61,11 +58,20 @@ This will allow you to host both AMQ Brokers, and AMQ Interconnect routes
 ==== BrokeredInfraConfig
 This will allow you to host both AMQ Brokers only.
 
+==== Address Space
+Group of addresses accessible through single connection
+
+==== Address
+Defines semantics of address, Has set of properties
+
+* Available address types determined by the address space type
+* Available plans determined by the address type
+
+image::./images/20-Comp.png[]
+
 * Address Space - refer back to AddressSpacePlan and here the magic happen as it go and create AMQ broker pod and AMQ Interconnect Pod base on the type (standard or brokered), also it like them with keycloak (AuthenticationService) as authentication/authorization source, and do all needed configuration .
 * Address - the destinations which use the spinned pods from AddressSpace to configure broker or routers.
 * Message User - defines the authentication/authorization attributes (which user can do what) for destination (like queue or topic). It mainly go and write the rules to keycloak.
-
-image::./images/20-Comp.png[]
 
 [IMPORTANT]
 ====
