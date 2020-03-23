@@ -18,9 +18,12 @@ fi
 
 echo "Proceeding"
 
+# for more details about installing an opertor, refer to https://docs.openshift.com/container-platform/4.3/operators/olm-adding-operators-to-cluster.html#olm-installing-operator-from-operatorhub-using-cli_olm-adding-operators-to-a-cluster
 oc apply -f ./amq-online.yaml
 
 cd amq-online-install-1-3
+
+sleep 5
 
 oc apply -f install/components/example-plans -n ${AMQ_ONLINE_INFRA_PROJ}
 oc apply -f install/components/example-roles -n ${AMQ_ONLINE_INFRA_PROJ}
