@@ -1,0 +1,66 @@
+apiVersion: enmasse.io/v1beta1
+kind: AddressSpace
+metadata:
+  labels:
+    addressSpaceType: standard
+    namespace: amq-online
+    type: address-space
+  name: demo-space
+  namespace: amqp-demo
+spec:
+  type: standard
+  plan: standard-small
+  authenticationService:
+    name: standard-authservice
+---
+apiVersion: user.enmasse.io/v1beta1
+kind: MessagingUser
+metadata:
+  name: demo-space.demo-user
+  namespace: amqp-demo
+spec:
+  username: demo-user
+  authentication:
+    type: password
+    password: cGFzc3dvcmQ= # Base64 encode of 'password'
+  authorization:
+    - addresses:
+        - '*'
+        - mysub
+        - mysubscription
+      operations:
+        - recv
+        - send
+    - addresses: []
+      operations:
+        - manage
+    - addresses: []
+      operations:
+        - view
+---
+kind: Address
+apiVersion: enmasse.io/v1beta1
+metadata:
+  labels:
+    addressType: topic
+  name: demo-space.mytopic
+  namespace: amqp-demo
+spec:
+  address: mytopic
+  type: topic
+  plan: standard-small-topic
+  forwarders: []
+---
+kind: Address
+apiVersion: enmasse.io/v1beta1
+metadata:
+  labels:
+    addressType: subscription
+  name: demo-space.mysub
+  namespace: amqp-demo
+spec:
+  address: mysub
+  type: subscription
+  plan: standard-small-subscription
+  topic: mytopic
+  forwarders: []

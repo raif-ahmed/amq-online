@@ -5,6 +5,7 @@ HOST_NAME=fuse-local-console.apps-crc.testing
 
 
 wget https://access.redhat.com/node/4541981/423/0/15323281 -O amq-online-install-1-3.zip
+# wget https://access.redhat.com/sites/default/files/announcements/amq-online-install_0.zip
 
 unzip ./amq-online-install-1-3.zip -d amq-online-install-1-3
 
