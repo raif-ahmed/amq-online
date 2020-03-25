@@ -12,7 +12,7 @@ fi
 
 echo "Proceeding"
 
-oc apply -f ./sample-topic.yaml
+oc apply -f ./demo-objects.yaml
 
 oc get routes console -o jsonpath={.spec.host} -n ${AMQ_ONLINE_INFRA_PROJ}
 
