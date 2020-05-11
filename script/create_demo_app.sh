@@ -16,7 +16,11 @@ oc apply -f ./demo-objects.yaml
 
 oc get routes console -o jsonpath={.spec.host} -n ${AMQ_ONLINE_INFRA_PROJ}
 
-oc get addressspace demo-space -o 'jsonpath={.status.endpointStatuses[?(@.name=="messaging")].externalHost}' -n ${AMQ_ONLINE_DEMO_PROJ}
+oc get addressspace demo-standard-space -o 'jsonpath={.status.endpointStatuses[?(@.name=="messaging")].externalHost}' -n ${AMQ_ONLINE_DEMO_PROJ}
+
+oc get addressspace demo-brokered-space -o 'jsonpath={.status.endpointStatuses[?(@.name=="messaging")].externalHost}' -n ${AMQ_ONLINE_DEMO_PROJ}
+
+exit
 
 
 

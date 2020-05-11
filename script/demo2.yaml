@@ -1,0 +1,64 @@
+apiVersion: enmasse.io/v1beta1
+kind: AddressSpace
+metadata:
+  name: demo-standard-federatedspace
+  namespace: amqp-demo
+spec:
+  type: standard
+  plan: standard-unlimited
+  authenticationService:
+    name: standard-authservice
+  endpoints:
+  - name: messaging
+    service: messaging
+    expose:
+      type: route
+      routeServicePort: amqps
+      routeTlsTermination: passthrough
+      routeHost: messaging-1.apps.cluster-40ff.40ff.sandbox1401.opentlc.com
+    cert:
+      provider: certBundle
+      secretName : dummy-secret
+    exports:
+    - kind: ConfigMap
+      name: federatedspace-cm
+  - name: console
+    service: console
+    expose:
+      type: route
+      routeTlsTermination: reencrypt
+      routeServicePort: https
+    cert:
+      provider: openshift
+---
+apiVersion: user.enmasse.io/v1beta1
+kind: MessagingUser
+metadata:
+  name: demo-standard-federatedspace.demo-user
+  namespace: amqp-demo
+spec:
+  username: demo-user
+  authentication:
+    type: password
+    password: cGFzc3dvcmQ= # Base64 encode of 'password'
+  authorization:
+    - addresses:
+        - '*'
+      operations:
+        - recv
+        - send
+    - addresses: []
+      operations:
+        - manage
+    - addresses: []
+      operations:
+        - view
+---
+apiVersion: enmasse.io/v1beta1
+kind: Address
+metadata:
+  name: demo-standard-federatedspace.myqueue
+spec:
+  address: myqueue
+  plan: standard-small-queue
+  type: queue

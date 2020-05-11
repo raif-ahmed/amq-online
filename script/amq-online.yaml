@@ -18,4 +18,3 @@ spec:
   name: amq-online
   source: redhat-operators
   sourceNamespace: openshift-marketplace
-  startingCSV: amqonline.1.3.3
