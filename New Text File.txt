@@ -1,28 +1,30 @@
-1- install using operator hub 
+https://access.redhat.com/documentation/en-us/red_hat_amq/7.5/html-single/using_the_amq_jms_client/index
 
-Procedure
+https://stackoverflow.com/questions/45631740/how-to-send-scheduled-message-to-azure-service-bus-with-jms
 
-In the OpenShift 4.x console, log in using an account with cluster-admin privileges.
-To create the project where you want to deploy AMQ Online, click Home > Projects, and then click Create Project. The Create Project window opens.
-In the Name field, type amq-online-infra and click Create. The amq-online-infra project is created.
-Click Catalog > OperatorHub.
-In the Filter by keyword box, type AMQ Online to find the AMQ Online Operator.
-Click the AMQ Online Operator. Information about the Operator is displayed.
-Read the information about the Operator and click Install. The Create Operator Subscription page opens.
-On the Create Operator Subscription page, for Installation Mode, click A specific namespace on the cluster, and then select the amq-online-infra namespace from the drop-down list.
-Accept all of the remaining default selections and click Subscribe.
+https://activemq.apache.org/components/artemis/documentation/latest/amqp.html
 
-The amq-online page is displayed, where you can monitor the installation progress of the AMQ Online Operator subscription.
+AMQP scheduling message delivery
+An AMQP message can provide scheduling information that controls the time in the future when the message will be delivered at the earliest. This information is provided by adding a message annotation to the sent message.
 
-After the subscription upgrade status is shown as Up to date, click Catalog > Installed Operators to verify that the AMQ Online ClusterServiceVersion (CSV) is displayed and its Status ultimately resolves to InstallSucceeded in the amq-online-infra namespace.
+There are two different message annotations that can be used to schedule a message for later delivery:
 
-wget https://access.redhat.com/node/4541981/423/0/15323281
+x-opt-delivery-time The specified value must be a positive long corresponding to the time the message should be made available for delivery (in milliseconds).
 
-oc apply -f install/components/example-plans -n amq-online-infra
+x-opt-delivery-delay The specified value must be a positive long corresponding to the amount of milliseconds after the broker receives the given message before it should be made available for delivery.
 
-oc apply -f install/components/example-roles -n amq-online-infra
+If both annotations are present in the same message then the broker will prefer the more specific x-opt-delivery-time value.
 
-oc apply -f install/components/example-authservices/standard-authservice.yaml -n amq-online-infra
+
+JMS_AMQP_MESSAGE_ANNOTATIONS
+{
+      "partition": ...
+      "offset": ...
+      "key": ...
+      "ann1": ...
+      ...
+      "annN": ...
+   }
 
 
 

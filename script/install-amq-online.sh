@@ -4,10 +4,11 @@ AMQ_ONLINE_INFRA_PROJ=amq-online-infra
 
 
 
-wget https://access.redhat.com/node/4541981/423/0/15323281 -O amq-online-install-1-3.zip
+#wget https://access.redhat.com/node/4541981/423/0/15323281 -O amq-online-install.zip
+wget https://access.redhat.com/node/5005911/423/0/16833831 -O amq-online-install.zip
 # wget https://access.redhat.com/sites/default/files/announcements/amq-online-install_0.zip
 
-unzip ./amq-online-install-1-3.zip -d amq-online-install-1-3
+unzip ./amq-online-install.zip -d amq-online-install
 
 
 output=$(oc get project ${AMQ_ONLINE_INFRA_PROJ})
@@ -22,7 +23,7 @@ echo "Proceeding"
 # for more details about installing an opertor, refer to https://docs.openshift.com/container-platform/4.3/operators/olm-adding-operators-to-cluster.html#olm-installing-operator-from-operatorhub-using-cli_olm-adding-operators-to-a-cluster
 oc apply -f ./amq-online.yaml
 
-cd amq-online-install-1-3
+cd amq-online-install
 
 sleep 5
 
