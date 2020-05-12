@@ -15,7 +15,7 @@ spec:
       type: route
       routeServicePort: amqps
       routeTlsTermination: passthrough
-      routeHost: messaging-1.apps.cluster-40ff.40ff.sandbox1401.opentlc.com
+      routeHost: messaging-1.apps.cluster-4d2a.4d2a.sandbox1401.opentlc.com
     cert:
       provider: certBundle
       secretName : dummy-secret
