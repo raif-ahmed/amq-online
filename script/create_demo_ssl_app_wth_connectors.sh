@@ -1,7 +1,8 @@
-export AMQ_URL=messaging-1.apps.cluster-5ab3.5ab3.sandbox1023.opentlc.com
+export AMQ_URL=messaging-1.apps.cluster-fb45.fb45.sandbox718.opentlc.com
+export REMOTE_AMQ_URL=messaging-1.apps.cluster-15de.15de.sandbox509.opentlc.com
 
-CLUSTER_ID=cluster-5ab3
-REMOTE_CLUSTER_ID=cluster-80e6
+CLUSTER_ID=cluster-fb45
+REMOTE_CLUSTER_ID=cluster-15de
 
 
 export AMQ_KEYSTORE=messaging-endpoint_$CLUSTER_ID
@@ -78,6 +79,7 @@ oc -n ${AMQ_ONLINE_DEMO_PROJ} create secret tls ${REMOTE_CONNECTOR_SECRET_NAME} 
 
 
 sed -i'' -e "s/routeHost:.*/routeHost: $AMQ_URL/g" ../demo-ssl-objects_wth_connectors.yaml
+sed -i'' -e "s/- host:.*/- host: $REMOTE_AMQ_URL/g" ../demo-ssl-objects_wth_connectors.yaml
 
 
 oc create -f ../demo-ssl-objects_wth_connectors.yaml

@@ -11,7 +11,7 @@ spec:
   connectors:
   - name: remote
     endpointHosts:
-    - host: messaging-1.apps.cluster-80e6.80e6.sandbox118.opentlc.com
+    - host: messaging-1.apps.cluster-15de.15de.sandbox509.opentlc.com
       port: 443
     tls:
       caCert:
@@ -41,7 +41,7 @@ spec:
       type: route
       routeServicePort: amqps
       routeTlsTermination: passthrough
-      routeHost: messaging-1.apps.cluster-5ab3.5ab3.sandbox1023.opentlc.com
+      routeHost: messaging-1.apps.cluster-fb45.fb45.sandbox718.opentlc.com
     cert:
       provider: certBundle
       secretName : server-secret
@@ -114,3 +114,7 @@ spec:
   address: myqueue
   plan: standard-small-queue
   type: queue
+  forwarders:
+  - name: f1
+    remoteAddress: remote/myqueue
+    direction: out

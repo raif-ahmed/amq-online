@@ -1,6 +1,6 @@
-export AMQ_URL=messaging-1.apps.cluster-80e6.80e6.sandbox118.opentlc.com
+export AMQ_URL=messaging-1.apps.cluster-15de.15de.sandbox509.opentlc.com
 
-CLUSTER_ID=cluster-80e6
+CLUSTER_ID=cluster-15de
 export AMQ_KEYSTORE=messaging-endpoint_$CLUSTER_ID
 export AMQ_KEYSTORE_PASSWORD=passw0rd
 
