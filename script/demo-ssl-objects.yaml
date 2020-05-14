@@ -15,10 +15,10 @@ spec:
       type: route
       routeServicePort: amqps
       routeTlsTermination: passthrough
-      routeHost: messaging-1.apps.cluster-4d2a.4d2a.sandbox1401.opentlc.com
+      routeHost: messaging-1.apps.cluster-80e6.80e6.sandbox118.opentlc.com
     cert:
       provider: certBundle
-      secretName : dummy-secret
+      secretName : server-secret
     exports:
     - kind: ConfigMap
       name: federatedspace-cm
@@ -30,6 +30,32 @@ spec:
       routeServicePort: https
     cert:
       provider: openshift
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rbac-amq-online
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "configmaps","secrets" ]
+    verbs: [ "create","get", "update", "patch" ]
+#  - apiGroups: [ "" ]
+#    resources: [ "configmaps" ]
+#    resourceNames: [ "spring-boot-camel-amq-config-standard","spring-boot-camel-amq-config-brokered" ]
+#    verbs: [ "get", "update", "patch" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rbac-amq-online-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rbac-amq-online
+subjects:
+- kind: ServiceAccount
+  name: address-space-controller
+  namespace: amq-online-infra
 ---
 apiVersion: user.enmasse.io/v1beta1
 kind: MessagingUser
