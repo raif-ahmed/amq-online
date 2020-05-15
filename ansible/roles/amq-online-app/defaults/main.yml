@@ -1,0 +1,24 @@
+---
+# defaults file for amq-online-amqonline-app
+_amqonline_app_proj: '{{ amqonline_app_proj }}'
+_amqonline_app_name: '{{ amqonline_app_name }}'
+_amqonline_app_address_space_name: '{{ amqonline_app_name }}-addressspace'
+_amqonline_app_role_name: '{{ amqonline_app_name }}-role'
+_amqonline_app_role_binding_name: '{{ amqonline_app_name }}-rolebinding'
+
+_amqonline_app_user_username: '{{ amqonline_app_user_username }}'
+_amqonline_app_user_password: '{{ amqonline_app_user_password }}'
+
+_amqonline_app_address_queue_name: '{{ amqonline_app_address_queue_name }}'
+
+_amqonline_app_connection_info_cm: '{{ amqonline_app_connection_info_cm }}'
+_amqonline_app_messaging_route_url: '{{ amqonline_app_messaging_route_url }}'
+
+_amqonline_app_state: '{{ amqonline_app_state }}'
+
+_amqonline_infra_proj: '{{ amqonline_infra_proj }}'
+
+
+
+
+

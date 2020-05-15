@@ -1,0 +1,9 @@
+apiVersion: enmasse.io/v1beta1
+kind: Address
+metadata:
+  name: {{ _amqonline_app_address_space_name }}.{{ _amqonline_app_address_queue_name }}
+  namespace: {{ _amqonline_app_proj }}
+spec:
+  address: {{ _amqonline_app_address_queue_name }}
+  plan: standard-small-queue
+  type: queue

@@ -1,0 +1,35 @@
+---
+# tasks file for amq-online-app
+- name: set {{ _amqonline_app_proj }} namespace to {{ _amqonline_app_state }}
+  k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ _amqonline_app_proj }}"
+    state: "{{ _amqonline_app_state }}"
+  ignore_errors: true
+
+- name: set Role to {{ _amqonline_app_state }}
+  k8s:
+    state: "{{ _amqonline_app_state }}"
+    definition: "{{ lookup('template', './templates/role.j2') | from_yaml }}"
+
+- name: set Role Binding to {{ _amqonline_app_state }}
+  k8s:
+    state: "{{ _amqonline_app_state }}"
+    definition: "{{ lookup('template', './templates/role_binding.j2') | from_yaml }}"
+
+- name: set Address Space to {{ _amqonline_app_state }}
+  k8s:
+    state: "{{ _amqonline_app_state }}"
+    definition: "{{ lookup('template', './templates/address_space.j2') | from_yaml }}"
+
+- name: set Messaging User to {{ _amqonline_app_state }}
+  k8s:
+    state: "{{ _amqonline_app_state }}"
+    definition: "{{ lookup('template', './templates/messaging_user.j2') | from_yaml }}"
+
+- name: set Address to {{ _amqonline_app_state }}
+  k8s:
+    state: "{{ _amqonline_app_state }}"
+    definition: "{{ lookup('template', './templates/address.j2') | from_yaml }}"
+

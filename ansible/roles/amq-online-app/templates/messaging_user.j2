@@ -1,0 +1,22 @@
+apiVersion: user.enmasse.io/v1beta1
+kind: MessagingUser
+metadata:
+  name: {{ _amqonline_app_address_space_name }}.{{ _amqonline_app_user_username }}
+  namespace: {{ _amqonline_infra_proj }}
+spec:
+  username: {{ _amqonline_app_user_username }}
+  authentication:
+    type: password
+    password: {{ _amqonline_app_user_password }}
+  authorization:
+    - addresses:
+        - '*'
+      operations:
+        - recv
+        - send
+    - addresses: []
+      operations:
+        - manage
+    - addresses: []
+      operations:
+        - view

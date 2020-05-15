@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ _amqonline_app_role_name }}
+  namespace: {{ _amqonline_app_proj }}
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "configmaps","secrets" ]
+    verbs: [ "create","get", "update", "patch" ]
+#  - apiGroups: [ "" ]
+#    resources: [ "configmaps" ]
+#    resourceNames: [ "cm1","cm2" ]
+#    verbs: [ "get", "update", "patch" ]

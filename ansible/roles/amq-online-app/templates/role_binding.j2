@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ _amqonline_app_role_binding_name }}
+  namespace: {{ _amqonline_app_proj }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ _amqonline_app_role_name }}
+subjects:
+- kind: ServiceAccount
+  name: address-space-controller
+  namespace: "{{ _amqonline_infra_proj }}"

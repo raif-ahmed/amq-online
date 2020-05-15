@@ -1,0 +1,32 @@
+apiVersion: enmasse.io/v1beta1
+kind: AddressSpace
+metadata:
+  name: {{ _amqonline_app_address_space_name }}
+  namespace: {{ _amqonline_app_proj }}
+spec:
+  type: standard
+  plan: standard-unlimited
+  authenticationService:
+    name: standard-authservice
+  endpoints:
+  - name: messaging
+    service: messaging
+    expose:
+      type: route
+      routeServicePort: amqps
+      routeTlsTermination: passthrough
+      routeHost: {{ _amqonline_app_messaging_route_url }}
+    cert:
+      provider: certBundle
+      secretName : server-secret
+    exports:
+    - kind: ConfigMap
+      name: {{ _amqonline_app_connection_info_cm }}
+  - name: console
+    service: console
+    expose:
+      type: route
+      routeTlsTermination: reencrypt
+      routeServicePort: https
+    cert:
+      provider: openshift

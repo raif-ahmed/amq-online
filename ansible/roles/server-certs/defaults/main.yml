@@ -1,0 +1,12 @@
+---
+# defaults file for server-certs
+dnsname: your.dns.name
+_tmppath: "/tmp/{{ amqonline_app_name }}"
+crtpath: "{{ tmppath }}{{ dnsname }}.crt"
+pempath: "{{ tmppath }}{{ dnsname }}.pem"
+csrpath: "{{ tmppath }}{{ dnsname }}.csr"
+pfxpath: "{{ tmppath }}{{ dnsname }}.pfx"
+private_key_password: "password"
+
+
+
