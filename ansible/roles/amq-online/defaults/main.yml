@@ -5,4 +5,7 @@ _amqonline_install_url: '{{ amqonline_install_url }}'
 _amqonline_state: '{{ amqonline_state }}'
 _amqonline_infra_proj: '{{ amqonline_infra_proj }}'
 
+# local vars
+_amqonline_wait_for_init: true
+
 

@@ -41,18 +41,12 @@
 - name: Verify that the Operator Pod is running
   when:
     - _amqonline_state == "present"
-    - _amqonline_wait_for_init|bool
-  k8s:
-    api_version: v1
-    kind: Pod
-    name: enmasse-operator 
-    namespace: "{{ _amqonline_infra_proj }}"
-  register: operator_pod
-  until:
-  - operator_pod.result.status.phase == "Running"
+  set_fact:
+      operator_pod: "not running"
+  until: (lookup('k8s', kind='Pod', label_selector='app=enmasse,name=enmasse-operator')|length > 0) and (lookup('k8s', kind='Pod', label_selector='app=enmasse,name=enmasse-operator').status.phase == "Running")
   retries: 50
   delay: 10
-  changed_when: false
+  changed_when: 'operator_pod !="not running"'
 
 - name: Apply installer example-plans
   when:
