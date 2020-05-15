@@ -1,0 +1,4 @@
+---
+# defaults file for amq-online
+amqonline_install_url: https://access.redhat.com/node/5005911/423/0/16833831
+amq_online_infra_proj: amq-online-infra

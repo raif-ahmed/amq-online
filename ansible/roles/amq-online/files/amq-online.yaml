@@ -1,0 +1,20 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: amq-online-infra-op-grp
+  namespace: amq-online-infra
+spec:
+  targetNamespaces:
+  - amq-online-infra
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: amq-online
+  namespace: amq-online-infra
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: amq-online
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
