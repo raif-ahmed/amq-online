@@ -1,0 +1,52 @@
+---
+# tasks file for amq-online
+- name: Create temporary directory
+  tempfile:
+    state: directory
+    suffix: amqonlineinstaller
+  register: installer
+
+- debug:
+    var: installer
+
+- name: Unarchive the installer
+  unarchive:
+    src: "{{ amqonline_install_url }}"
+    dest: "{{ installer.path }}"
+    remote_src: yes
+
+- name: Check if project exists
+  command:
+    cmd: /usr/bin/oc get project {{ amq_online_infra_proj }}
+  ignore_errors: yes
+  register: project_exists
+  changed: false
+
+- debug: var=project_exists
+
+- name: Ensure project exists
+  command:
+    cmd: /usr/bin/oc new-project {{ amq_online_infra_proj }}
+  when: project_exists.rc != 0
+
+- name: Apply amq-online.yaml
+  command:
+    cmd: /usr/bin/oc apply -f roles/amq-online/files/amq-online.yaml
+
+- name: sleep for 5 seconds
+  wait_for:
+    timeout: 5
+
+- name: Apply installer examples
+  command:
+    cmd: /usr/bin/oc apply -f install/components/example-plans -n {{ amq_online_infra_proj }}
+  with_items:
+    - install/components/example-plans
+    - install/components/example-roles
+    - install/components/example-authservices/standard-authservice.yaml
+
+- name: Clean up temporary file
+  file:
+    state: absent
+    path: "{{ installer.path }}"
+
