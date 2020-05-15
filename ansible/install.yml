@@ -18,6 +18,7 @@
     amqonline_app_connection_info_cm: 'messaging-connection-cm'
     amqonline_app_user_username: 'demo-user'
     amqonline_app_user_password: cGFzc3dvcmQ= # Base64 encode of 'password'
+    amqonline_app_certificate_private_key_password: 'passw0rd'
     amqonline_app_state: 'present'
   roles:
 #   - amq-online

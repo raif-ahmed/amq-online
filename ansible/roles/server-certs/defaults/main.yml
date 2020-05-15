@@ -1,12 +1,12 @@
 ---
 # defaults file for server-certs
-dnsname: your.dns.name
-_tmppath: "/tmp/{{ amqonline_app_name }}"
-crtpath: "{{ tmppath }}{{ dnsname }}.crt"
-pempath: "{{ tmppath }}{{ dnsname }}.pem"
-csrpath: "{{ tmppath }}{{ dnsname }}.csr"
-pfxpath: "{{ tmppath }}{{ dnsname }}.pfx"
-private_key_password: "password"
+dnsname: {{ amqonline_app_messaging_route_url }}
+_tmppath: "/tmp/{{ amqonline_app_name }}/"
+crtpath: "{{ tmppath }}/{{ amqonline_app_name }}.crt"
+pempath: "{{ tmppath }}/{{ amqonline_app_name }}.pem"
+csrpath: "{{ tmppath }}/{{ amqonline_app_name }}.csr"
+pfxpath: "{{ tmppath }}/{{ amqonline_app_name }}.pfx"
+private_key_password: {{ amqonline_app_certificate_private_key_password }}
 
 
 
