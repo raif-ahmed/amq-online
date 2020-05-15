@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: "{{ _amqonline_name }}-subscription"
+  namespace: "{{ _amqonline_infra_proj }}"
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: amq-online
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+
+

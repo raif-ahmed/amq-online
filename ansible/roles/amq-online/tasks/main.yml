@@ -1,6 +1,8 @@
 ---
 # tasks file for amq-online
 - name: Create temporary directory
+  when:
+    - _amqonline_state == "present"
   tempfile:
     state: directory
     suffix: amqonlineinstaller
@@ -10,40 +12,44 @@
     var: installer
 
 - name: Unarchive the installer
+  when:
+    - _amqonline_state == "present"
   unarchive:
     src: "{{ amqonline_install_url }}"
     dest: "{{ installer.path }}"
     remote_src: yes
 
-- name: Check if project exists
-  command:
-    cmd: /usr/bin/oc get project {{ amq_online_infra_proj }}
-  ignore_errors: yes
-  register: project_exists
-  changed: false
+- name: set "{{ _amqonline_infra_proj }}" namespace to "{{ _amqonline_state }}"
+  k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ _amqonline_infra_proj }}"
+    state: "{{ _amqonline_state }}"
+  ignore_errors: true
 
-- debug: var=project_exists
+- name: set AMQ Online Operator Group to {{ _amqonline_state }}
+  k8s:
+    state: "{{ _amqonline_state }}"
+    definition: "{{ lookup('template', './templates/amq_online_operator_group.j2') | from_yaml }}"
 
-- name: Ensure project exists
-  command:
-    cmd: /usr/bin/oc new-project {{ amq_online_infra_proj }}
-  when: project_exists.rc != 0
-
-- name: Apply amq-online.yaml
-  command:
-    cmd: /usr/bin/oc apply -f roles/amq-online/files/amq-online.yaml
+- name: set AMQ Online Operator Subscription to {{ _amqonline_state }}
+  k8s:
+    state: "{{ _amqonline_state }}"
+    definition: "{{ lookup('template', './templates/amq_online_subscription.j2') | from_yaml }}"
 
 - name: sleep for 5 seconds
   wait_for:
     timeout: 5
 
 - name: Apply installer examples
-  command:
-    cmd: /usr/bin/oc apply -f install/components/example-plans -n {{ amq_online_infra_proj }}
-  with_items:
-    - install/components/example-plans
-    - install/components/example-roles
-    - install/components/example-authservices/standard-authservice.yaml
+  when:
+    - _amqonline_state == "present"
+  k8s:
+    state: "{{ _amqonline_state }}"
+    resource_definition: 
+      - "{{ installer.path }}/install/components/example-plans"
+      - "{{ installer.path }}/install/components/example-roles"
+      - "{{ installer.path }}/install/components/example-authservices/standard-authservice.yaml"
 
 - name: Clean up temporary file
   file:

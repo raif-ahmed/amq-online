@@ -1,0 +1,9 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: "{{ _amqonline_name }}-op-grp"
+  namespace: "{{ _amqonline_infra_proj }}"
+spec:
+  targetNamespaces:
+  - "{{ _amqonline_infra_proj }}"
+
