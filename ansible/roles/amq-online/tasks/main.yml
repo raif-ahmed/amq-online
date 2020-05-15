@@ -8,14 +8,15 @@
     suffix: amqonlineinstaller
   register: installer
 
-- debug:
-    var: installer
+- name: Debug vars and parametrs 
+  debug:
+    msg: "_amqonline_state: {{ _amqonline_state }}, _amqonline_install_url: {{ _amqonline_install_url }},_amqonline_infra_proj: {{ _amqonline_infra_proj }},installer: {{ installer }}"
 
 - name: Unarchive the installer
   when:
     - _amqonline_state == "present"
   unarchive:
-    src: "{{ amqonline_install_url }}"
+    src: "{{ _amqonline_install_url }}"
     dest: "{{ installer.path }}"
     remote_src: yes
 
@@ -37,19 +38,48 @@
     state: "{{ _amqonline_state }}"
     definition: "{{ lookup('template', './templates/amq_online_subscription.j2') | from_yaml }}"
 
-- name: sleep for 5 seconds
-  wait_for:
-    timeout: 5
+- name: Verify that the Operator Pod is running
+  when:
+    - _amqonline_state == "present"
+    - _amqonline_wait_for_init|bool
+  k8s:
+    api_version: v1
+    kind: Pod
+    name: enmasse-operator 
+    namespace: "{{ _amqonline_infra_proj }}"
+  register: operator_pod
+  until:
+  - operator_pod.result.status.phase == "Running"
+  retries: 50
+  delay: 10
+  changed_when: false
 
-- name: Apply installer examples
+- name: Apply installer example-plans
   when:
     - _amqonline_state == "present"
   k8s:
+    namespace: "{{ _amqonline_infra_proj }}"
     state: "{{ _amqonline_state }}"
-    resource_definition: 
-      - "{{ installer.path }}/install/components/example-plans"
-      - "{{ installer.path }}/install/components/example-roles"
-      - "{{ installer.path }}/install/components/example-authservices/standard-authservice.yaml"
+    src: "{{ installer.path }}/install/components/example-plans/{{ item.path }}"
+  with_filetree: "{{ installer.path }}/install/components/example-plans"
+
+- name: Apply installer example-roles
+  when:
+    - _amqonline_state == "present"
+  k8s:
+    namespace: "{{ _amqonline_infra_proj }}"
+    state: "{{ _amqonline_state }}"
+    src: "{{ installer.path }}/install/components/example-roles/{{ item.path }}"
+  with_filetree: "{{ installer.path }}/install/components/example-roles"
+
+- name: Apply installer example-authservices
+  when:
+    - _amqonline_state == "present"
+  k8s:
+    namespace: "{{ _amqonline_infra_proj }}"
+    state: "{{ _amqonline_state }}"
+    src: "{{ installer.path }}/install/components/example-authservices/{{ item.path }}"
+  with_filetree: "{{ installer.path }}/install/components/example-authservices"
 
 - name: Clean up temporary file
   file:
