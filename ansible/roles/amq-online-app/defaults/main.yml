@@ -2,6 +2,9 @@
 # defaults file for amq-online-amqonline-app
 _amqonline_app_proj: '{{ amqonline_app_proj }}'
 _amqonline_app_name: '{{ amqonline_app_name }}'
+_amqonline_app_certificate_directory: '{{ amqonline_app_certificate_directory }}'
+_amqonline_app_certificate_file_name: '{{ amqonline_app_certificate_file_name }}'
+
 _amqonline_app_address_space_name: '{{ amqonline_app_name }}-addressspace'
 _amqonline_app_role_name: '{{ amqonline_app_name }}-role'
 _amqonline_app_role_binding_name: '{{ amqonline_app_name }}-rolebinding'
@@ -18,7 +21,15 @@ _amqonline_app_state: '{{ amqonline_app_state }}'
 
 _amqonline_infra_proj: '{{ amqonline_infra_proj }}'
 
+_amqonline_app_messaging_secret_name: 'server-ssl-secret'
 
 
+_amqonline_app_remote_deploy: '{{ amqonline_infra_proj }}'
+_amqonline_app_remote_messaging_route_url: '{{ amqonline_app_remote_messaging_route_url }}'
+_amqonline_app_remote_messaging_user_username: '{{ amqonline_app_remote_messaging_user_username }}'
+_amqonline_app_remote_messaging_user_password: '{{ amqonline_app_remote_messaging_user_password }}'
+_amqonline_app_remote_certificate_directory: '{{ amqonline_app_remote_certificate_directory }}'
+_amqonline_app_remote_certificate_file_name: '{{ amqonline_app_remote_certificate_file_name }}'
+_amqonline_app_remote_messaging_secret_name: 'remote-server-ssl-secret'
 
-
+_amqonline_app_remote_file_suffix: ''

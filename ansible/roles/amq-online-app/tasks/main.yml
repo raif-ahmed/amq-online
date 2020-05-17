@@ -1,5 +1,43 @@
 ---
 # tasks file for amq-online-app
+- name: Check if crt files exists
+  when:
+    - _amqonline_app_state == "present"
+  stat:
+    path: "{{ _amqonline_app_certificate_directory }}/{{ _amqonline_app_certificate_file_name }}.crt"
+  register: _file_exists
+  failed_when: not _file_exists.stat.exists
+  any_errors_fatal: true
+
+- name: Check if key files exists
+  when:
+    - _amqonline_app_state == "present"
+  stat:
+    path: "{{ _amqonline_app_certificate_directory }}/{{ _amqonline_app_certificate_file_name }}.key"
+  register: _file_exists
+  failed_when: not _file_exists.stat.exists
+  any_errors_fatal: true
+
+- name: Check if remote crt files exists
+  when:
+    - _amqonline_app_state == "present"
+    - _amqonline_app_remote_deploy == "yes"
+  stat:
+    path: "{{ _amqonline_app_remote_certificate_directory }}/{{ _amqonline_app_remote_certificate_file_name }}.crt"
+  register: _file_exists
+  failed_when: not _file_exists.stat.exists
+  any_errors_fatal: true
+
+- name: Check if remote key files exists
+  when:
+    - _amqonline_app_state == "present"
+    - _amqonline_app_remote_deploy == "yes"
+  stat:
+    path: "{{ _amqonline_app_remote_certificate_directory }}/{{ _amqonline_app_remote_certificate_file_name }}.key"
+  register: _file_exists
+  failed_when: not _file_exists.stat.exists
+  any_errors_fatal: true
+
 - name: set {{ _amqonline_app_proj }} namespace to {{ _amqonline_app_state }}
   k8s:
     api_version: v1
@@ -7,6 +45,82 @@
     name: "{{ _amqonline_app_proj }}"
     state: "{{ _amqonline_app_state }}"
   ignore_errors: true
+
+- name: Set template files to remote suffix
+  when:
+    - _amqonline_app_remote_deploy == "yes"
+  set_fact:
+    _amqonline_app_remote_file_suffix: "_remote"
+
+- name: Read cert file
+  when:
+    - _amqonline_app_state == "present"
+  slurp:
+    path: "{{ _amqonline_app_certificate_directory }}/{{ _amqonline_app_certificate_file_name }}.crt"
+  register: _certificate_crt_file
+  delegate_to: localhost
+
+- name: Read key file
+  when:
+    - _amqonline_app_state == "present"
+  slurp:
+    path: "{{ _amqonline_app_certificate_directory }}/{{ _amqonline_app_certificate_file_name }}.key"
+  register: _certificate_key_file
+  delegate_to: localhost
+
+
+- name: Create cert secret
+  when:
+    - _amqonline_app_state == "present"
+  k8s:
+    state: "{{ _amqonline_app_state }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ _amqonline_app_messaging_secret_name }}"
+        namespace: "{{ _amqonline_infra_proj }}"
+      type: kubernetes.io/tls
+      data:
+        tls.crt: "{{ _certificate_crt_file['content'] }}"
+        tls.key: "{{ _certificate_key_file['content'] }}"
+
+- name: Read remote cert File
+  when:
+    - _amqonline_app_state == "present"
+    - _amqonline_app_remote_deploy == "yes"
+  slurp:
+    path: "{{ _amqonline_app_remote_certificate_directory }}/{{ _amqonline_app_remote_certificate_file_name }}.crt"
+  register: _certificate_crt_file
+  delegate_to: localhost
+
+- name: Read remote key cert file
+  when:
+    - _amqonline_app_state == "present"
+    - _amqonline_app_remote_deploy == "yes"
+  slurp:
+    path: "{{ _amqonline_app_remote_certificate_directory }}/{{ _amqonline_app_remote_certificate_file_name }}.key"
+  register: _certificate_key_file
+  delegate_to: localhost
+
+
+- name: Create remote cert secret
+  when:
+    - _amqonline_app_state == "present"
+    - _amqonline_app_remote_deploy == "yes"
+  k8s:
+    state: "{{ _amqonline_app_state }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ _amqonline_app_remote_messaging_secret_name }}"
+        namespace: "{{ _amqonline_app_proj }}"
+      type: kubernetes.io/tls
+      data:
+        tls.crt: "{{ _certificate_crt_file['content'] }}"
+        tls.key: "{{ _certificate_key_file['content'] }}"
+
 
 - name: set Role to {{ _amqonline_app_state }}
   k8s:
@@ -21,15 +135,9 @@
 - name: set Address Space to {{ _amqonline_app_state }}
   k8s:
     state: "{{ _amqonline_app_state }}"
-    definition: "{{ lookup('template', './templates/address_space.j2') | from_yaml }}"
-
-- name: set Messaging User to {{ _amqonline_app_state }}
-  k8s:
-    state: "{{ _amqonline_app_state }}"
-    definition: "{{ lookup('template', './templates/messaging_user.j2') | from_yaml }}"
+    definition: "{{ lookup('template', './templates/address_space{{ _amqonline_app_remote_file_suffix }}.j2') | from_yaml }}"
 
 - name: set Address to {{ _amqonline_app_state }}
   k8s:
     state: "{{ _amqonline_app_state }}"
-    definition: "{{ lookup('template', './templates/address.j2') | from_yaml }}"
-
+    definition: "{{ lookup('template', './templates/address{{ _amqonline_app_remote_file_suffix }}.j2') | from_yaml }}"

@@ -8,7 +8,7 @@
     suffix: amqonlineinstaller
   register: installer
 
-- name: Debug vars and parametrs 
+- name: Debug vars and parametrs
   debug:
     msg: "_amqonline_state: {{ _amqonline_state }}, _amqonline_install_url: {{ _amqonline_install_url }},_amqonline_infra_proj: {{ _amqonline_infra_proj }},installer: {{ installer }}"
 
@@ -41,12 +41,17 @@
 - name: Verify that the Operator Pod is running
   when:
     - _amqonline_state == "present"
-  set_fact:
-      operator_pod: "not running"
-  until: (lookup('k8s', kind='Pod', label_selector='app=enmasse,name=enmasse-operator')|length > 0) and (lookup('k8s', kind='Pod', label_selector='app=enmasse,name=enmasse-operator').status.phase == "Running")
+  k8s_info:
+    kind: Pod
+    namespace: "{{ _amqonline_infra_proj }}"
+    label_selectors:
+      - app = enmasse
+      - name = enmasse-operator
+  register: operator_pod
+  until: (operator_pod.resources|length>0) and (operator_pod.resources[0].status.phase == "Running")
   retries: 50
   delay: 10
-  changed_when: 'operator_pod !="not running"'
+  changed_when: false
 
 - name: Apply installer example-plans
   when:
@@ -72,11 +77,11 @@
   k8s:
     namespace: "{{ _amqonline_infra_proj }}"
     state: "{{ _amqonline_state }}"
-    src: "{{ installer.path }}/install/components/example-authservices/{{ item.path }}"
-  with_filetree: "{{ installer.path }}/install/components/example-authservices"
+    src: "{{ installer.path }}/install/components/example-authservices/standard-authservice.yaml"
 
 - name: Clean up temporary file
+  when:
+    - _amqonline_state == "present"
   file:
     state: absent
     path: "{{ installer.path }}"
-

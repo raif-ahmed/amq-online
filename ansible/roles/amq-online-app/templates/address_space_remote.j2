@@ -8,6 +8,24 @@ spec:
   plan: standard-unlimited
   authenticationService:
     name: standard-authservice
+  connectors:
+  - name: remote
+    endpointHosts:
+    - host: {{ _amqonline_app_remote_messaging_route_url }}
+      port: 443
+    tls:
+      caCert:
+        valueFromSecret:
+          name: {{ _amqonline_app_remote_messaging_secret_name }}
+          key: tls.crt
+    credentials:
+      username:
+        value: {{ _amqonline_app_remote_messaging_user_username }}
+      password:
+        value: {{ _amqonline_app_remote_messaging_user_password }}
+    addresses:
+    - name: remoteQueue
+      pattern: "*"
   endpoints:
   - name: messaging
     service: messaging

@@ -1,0 +1,22 @@
+
+export K8S_AUTH_HOST="https://api.cluster-91f1.91f1.sandbox171.opentlc.com:6443"
+export K8S_AUTH_API_KEY="4GdcMJcGbW2QdJEE9BReuEY4uPvBuYkndb3n_3VIq4I"
+export K8S_AUTH_VERIFY_SSL=no
+
+ansible-playbook install.yml
+
+
+ansible-playbook uninstall.yml 
+
+
+-------------------------------------
+
+export K8S_AUTH_HOST="https://api.cluster-4636.4636.sandbox254.opentlc.com:6443"
+export K8S_AUTH_API_KEY="Vay_yxlJtHXLUfUTB6hqUlVGjwaagpOWolThNhmfs3A"
+export K8S_AUTH_VERIFY_SSL=no
+
+ansible-playbook install.yml 
+
+
+ansible-playbook uninstall.yml 
+
