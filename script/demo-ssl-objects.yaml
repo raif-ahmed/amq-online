@@ -15,7 +15,7 @@ spec:
       type: route
       routeServicePort: amqps
       routeTlsTermination: passthrough
-      routeHost: messaging-1.apps.cluster-15de.15de.sandbox509.opentlc.com
+      routeHost: messaging-1.apps.cluster-8656.8656.sandbox114.opentlc.com
     cert:
       provider: certBundle
       secretName : server-secret

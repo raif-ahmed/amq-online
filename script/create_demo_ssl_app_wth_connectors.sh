@@ -1,8 +1,8 @@
-export AMQ_URL=messaging-1.apps.cluster-fb45.fb45.sandbox718.opentlc.com
-export REMOTE_AMQ_URL=messaging-1.apps.cluster-15de.15de.sandbox509.opentlc.com
+export AMQ_URL=messaging-1.apps.cluster-d524.d524.sandbox941.opentlc.com
+export REMOTE_AMQ_URL=messaging-1.apps.cluster-8656.8656.sandbox114.opentlc.com
 
-CLUSTER_ID=cluster-fb45
-REMOTE_CLUSTER_ID=cluster-15de
+CLUSTER_ID=cluster-d524
+REMOTE_CLUSTER_ID=cluster-8656
 
 
 export AMQ_KEYSTORE=messaging-endpoint_$CLUSTER_ID

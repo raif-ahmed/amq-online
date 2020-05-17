@@ -1,5 +1,5 @@
 ---
-# tasks file for amq-online 
+# tasks file for amq-online
 - file:
     path: "{{ _tmppath }}"
     state: absent
@@ -42,3 +42,9 @@
   shell: "openssl pkcs12 -in {{ _pfxpath }} -nocerts -nodes -out {{ _keypath }} -passin pass:{{ _private_key_password }}"
   delegate_to: localhost
 
+- name: Copy files to remote server location
+  when:
+    - _amqonline_app_certificate_copy_to_remote |bool
+  copy:
+    src: "{{ _tmppath }}/"
+    dest: "{{ _amqonline_app_remote_certificate_directory }}"
