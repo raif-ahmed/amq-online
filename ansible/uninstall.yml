@@ -17,10 +17,6 @@
     amqonline_app_certificate_directory: '/tmp/{{ amqonline_app_name }}'
     # it assume that crt and key file names are same but extensions is .crt & .key
     amqonline_app_certificate_file_name: '{{ amqonline_app_name }}'
-    amqonline_app_certificate_country_name: 'NL'
-    amqonline_app_certificate_organization_name: 'Rechtspraak'
-    amqonline_app_certificate_organizational_unit_name: 'IVO'
-    amqonline_app_certificate_private_key_password: 'passw0rd'
     amqonline_app_state: 'absent'
     # use in case you want to deploy an app that have addressspace connectors and forwarders.
     amqonline_app_remote_deploy: 'no'

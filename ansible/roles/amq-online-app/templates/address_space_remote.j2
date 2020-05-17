@@ -18,6 +18,14 @@ spec:
         valueFromSecret:
           name: {{ _amqonline_app_remote_messaging_secret_name }}
           key: tls.crt
+      clientCert:
+        valueFromSecret:
+          name: {{ _amqonline_app_messaging_secret_name }}
+          key: tls.crt
+      clientKey:
+        valueFromSecret:
+          name: {{ _amqonline_app_messaging_secret_name }}
+          key: tls.key
     credentials:
       username:
         value: {{ _amqonline_app_remote_messaging_user_username }}

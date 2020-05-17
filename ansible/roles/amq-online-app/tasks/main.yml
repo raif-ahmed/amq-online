@@ -85,6 +85,24 @@
         tls.crt: "{{ _certificate_crt_file['content'] }}"
         tls.key: "{{ _certificate_key_file['content'] }}"
 
+- name: Create cert secret
+  when:
+    - _amqonline_app_state == "present"
+    - _amqonline_app_remote_deploy == "yes"
+  k8s:
+    state: "{{ _amqonline_app_state }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ _amqonline_app_messaging_secret_name }}"
+        namespace: "{{ _amqonline_app_proj }}"
+      type: kubernetes.io/tls
+      data:
+        tls.crt: "{{ _certificate_crt_file['content'] }}"
+        tls.key: "{{ _certificate_key_file['content'] }}"
+
+
 - name: Read remote cert File
   when:
     - _amqonline_app_state == "present"
