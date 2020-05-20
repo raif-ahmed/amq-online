@@ -7,7 +7,7 @@
     amqonline_name: 'amq-online-infra'
     amqonline_install_url: https://access.redhat.com/node/5005911/423/0/16833831
     amqonline_infra_proj: amq-online-infra
-    amqonline_app_messaging_route_url: 'demo-app-messaging.apps.cluster-4636.4636.sandbox254.opentlc.com'
+    amqonline_app_messaging_route_url: 'demo-app-messaging.apps.demo2-cluster.openshift.com'
     amqonline_app_proj: 'demo-amqonline'
     amqonline_app_name: 'demo-app'
     amqonline_app_address_queue_name: 'myqueue'
@@ -16,11 +16,16 @@
     amqonline_app_user_password: cGFzc3dvcmQ= # Base64 encode of 'password'
     amqonline_app_certificate_directory: '/tmp/certs'
     # it assume that crt and key file names are same but extensions is .crt & .key
-    amqonline_app_certificate_file_name: '{{ amqonline_app_name }}'
+    amqonline_app_certificate_file_name: 'messaging-endpoint_cluster-4636'
+    amqonline_app_certificate_country_name: 'NL'
+    amqonline_app_certificate_organization_name: 'Rechtspraak'
+    amqonline_app_certificate_organizational_unit_name: 'IVO'
+    amqonline_app_certificate_private_key_password: 'passw0rd'
+    amqonline_app_certificate_copy_to_remote: 'no'
     amqonline_app_state: 'present'
     # use in case you want to deploy an app that have addressspace connectors and forwarders.
     amqonline_app_remote_deploy: 'no'
-    amqonline_app_remote_messaging_route_url: 'demo-app-messaging.apps.cluster-91f1.91f1.sandbox171.opentlc.com'
+    amqonline_app_remote_messaging_route_url: 'demo-app-messaging.apps.demo1-cluster.openshift.com'
     amqonline_app_remote_messaging_user_username: 'demo-user'
     amqonline_app_remote_messaging_user_password: 'password'
     amqonline_app_remote_certificate_directory: '/tmp/certs'
@@ -28,4 +33,5 @@
     amqonline_app_remote_certificate_file_name: 'demo-app'
   roles:
   - amq-online
+  - { role: server-certs, when: amqonline_state == "present" }
   - amq-online-app

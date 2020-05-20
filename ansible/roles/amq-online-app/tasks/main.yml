@@ -150,6 +150,11 @@
     state: "{{ _amqonline_app_state }}"
     definition: "{{ lookup('template', './templates/role_binding.j2') | from_yaml }}"
 
+- name: set Messaging User to {{ _amqonline_app_state }}
+  k8s:
+    state: "{{ _amqonline_app_state }}"
+    definition: "{{ lookup('template', './templates/messaging_user.j2') | from_yaml }}"
+
 - name: set Address Space to {{ _amqonline_app_state }}
   k8s:
     state: "{{ _amqonline_app_state }}"
