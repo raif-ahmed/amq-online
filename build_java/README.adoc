@@ -3,6 +3,7 @@
 This quickstart shows how to connect using Camel routes (Spring-Boot based application) to an AMQ Online SaaS self-service messaging.
 
 There are 2 usecase which I will explorer
+
  * Publisher Subscriber usecase (Multicast) built using Standard Address.
  * Point-to-point usecase (Anycast) built using Brokered Address
 
