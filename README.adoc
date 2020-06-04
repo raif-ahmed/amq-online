@@ -7,9 +7,10 @@
 :stylesheet: colony.css
 
 = AMQ Online
-AMQ Online is a solution (Operator) to manage multiple components to provide
-the over all functionality of running self-service (Messaging as a Service) messaging platform on OpenShift
 
+AMQ Online is a solution (Operator) to manage multiple components to provide the over all functionality of running self-service (Messaging as a Service) messaging platform on OpenShift.
+
+In this series i will explorer AMQ Online from basic concepts to multi-cluster deployments and multi-cluster connectors.
 
 :sectnums:
 
