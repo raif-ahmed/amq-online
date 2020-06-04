@@ -140,7 +140,7 @@ There are two ways for installing AMQ online.
 . Using the source files for RedHat portal.
 . Using the AMQ online operator from OperatorHub.
 
-* For ease of use i created a oc cli script which effectively use OperatorHub for installation link:script/install-amq-online.sh[install-amq-online.sh].
+* For ease of use i created a oc cli script which effectively use OperatorHub for installation link:script/install-amq-online.sh[install_amq_online.sh].
 
 == JMS clients and libraries
 There are multiple JMS Clients depending on the underlying Messaging Protocol (as shown in above table) each one have a set features and may have also some limitations.

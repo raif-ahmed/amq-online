@@ -12,8 +12,8 @@ It is assumed that:
 
 * Your OpenShift environment is configured for Fabric8 Maven Workflow, if not you can refer to my blog post https://github.com/rahmed-rh/fuse_on_OCP_7.5[Understand Fuse 7.5 on OpenShift].
 ** You can easily setup the fuse on openshift using script https://raw.githubusercontent.com/rahmed-rh/fuse_on_OCP_7.5/master/scripts/install_fis_7.5.sh[install_fis_7.5.sh]
-* AMQ Online is installed on OpenShift environment,if not you can refer to my blog post ../understand[Understand AMQ Online]
-** You can easily setup the AMQ Online on OpenShift using script ../understand/script/install-amq-online.sh[install-amq-online.sh]
+* AMQ Online is installed on OpenShift environment,if not you can refer to my blog post link:../understand[Understand AMQ Online]
+** You can easily setup the AMQ Online on OpenShift using script link:../understand/script/install_amq_online.sh[install_amq_online.sh]
 
 To setup the test project you can run the following script.
 

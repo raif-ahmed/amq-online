@@ -25,4 +25,4 @@ There are 2 usecase which will explorer
  * Publisher Subscriber usecase (Multicast) built using Standard Address.
  * Point-to-point usecase (Anycast) built using Brokered Address
 
-link:external-secrets[Building A Java Sample]
+link:build_java[Building A Java Sample]
