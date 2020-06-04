@@ -1,0 +1,168 @@
+apiVersion: enmasse.io/v1beta1
+kind: AddressSpace
+metadata:
+  labels:
+    addressSpaceType: standard
+    type: address-space
+  name: demo-standard-space
+  namespace: amqp-demo
+spec:
+  type: standard
+  plan: standard-small
+  authenticationService:
+    name: standard-authservice
+  endpoints:
+  - name: messaging
+    service: messaging
+    expose:
+      type: route
+      routeServicePort: amqps
+      routeTlsTermination: passthrough
+    exports:
+    - kind: ConfigMap
+      name: spring-boot-camel-amq-config-standard
+    cert:
+      provider: openshift
+---
+apiVersion: enmasse.io/v1beta1
+kind: AddressSpace
+metadata:
+  labels:
+    addressSpaceType: standard
+    type: address-space
+  name: demo-brokered-space
+  namespace: amqp-demo
+spec:
+  type: brokered
+  plan: brokered-single-broker
+  authenticationService:
+    name: standard-authservice
+  endpoints:
+  - name: messaging
+    service: messaging
+    expose:
+      type: route
+      routeServicePort: amqps
+      routeTlsTermination: passthrough
+    exports:
+    - kind: ConfigMap
+      name: spring-boot-camel-amq-config-brokered
+    cert:
+      provider: openshift
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rbac
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "configmaps" ]
+    verbs: [ "create" ]
+  - apiGroups: [ "" ]
+    resources: [ "configmaps" ]
+    resourceNames: [ "spring-boot-camel-amq-config-standard","spring-boot-camel-amq-config-brokered" ]
+    verbs: [ "get", "update", "patch" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rbac-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rbac
+subjects:
+- kind: ServiceAccount
+  name: address-space-controller
+  namespace: amq-online-infra
+---
+apiVersion: user.enmasse.io/v1beta1
+kind: MessagingUser
+metadata:
+  name: demo-standard-space.demo-user
+  namespace: amqp-demo
+spec:
+  username: demo-user
+  authentication:
+    type: password
+    password: cGFzc3dvcmQ= # Base64 encode of 'password'
+  authorization:
+    - addresses:
+        - '*'
+      operations:
+        - recv
+        - send
+    - addresses: []
+      operations:
+        - manage
+    - addresses: []
+      operations:
+        - view
+---
+apiVersion: user.enmasse.io/v1beta1
+kind: MessagingUser
+metadata:
+  name: demo-brokered-space.demo-user
+  namespace: amqp-demo
+spec:
+  username: demo-user
+  authentication:
+    type: password
+    password: cGFzc3dvcmQ= # Base64 encode of 'password'
+  authorization:
+    - addresses:
+        - '*'
+      operations:
+        - recv
+        - send
+    - addresses: []
+      operations:
+        - manage
+    - addresses: []
+      operations:
+        - view
+---
+kind: Address
+apiVersion: enmasse.io/v1beta1
+metadata:
+  labels:
+    addressType: topic
+  name: demo-standard-space.mytopic
+  namespace: amqp-demo
+spec:
+  address: mytopic
+  type: topic
+  plan: standard-small-topic
+  forwarders: []
+---
+kind: Address
+apiVersion: enmasse.io/v1beta1
+metadata:
+  labels:
+    addressType: subscription
+  name: demo-standard-space.mysub
+  namespace: amqp-demo
+spec:
+  address: mysub
+  type: subscription
+  plan: standard-small-subscription
+  topic: mytopic
+  forwarders: []
+---
+apiVersion: enmasse.io/v1beta1
+kind: Address
+metadata:
+  name: demo-standard-space.myqueue-standard
+spec:
+  address: myqueue-standard
+  plan: standard-small-queue
+  type: queue
+---
+apiVersion: enmasse.io/v1beta1
+kind: Address
+metadata:
+  name: demo-brokered-space.myqueue-brokered
+spec:
+  address: myqueue-brokered
+  plan: standard-small-queue
+  type: queue

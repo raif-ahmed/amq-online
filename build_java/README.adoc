@@ -1,0 +1,188 @@
+= Building A Java Sample using camel routes
+
+This quickstart shows how to connect using Camel routes (Spring-Boot based application) to an AMQ Online SaaS self-service messaging.
+
+There are 2 usecase which I will explorer
+ * Publisher Subscriber usecase (Multicast) built using Standard Address.
+ * Point-to-point usecase (Anycast) built using Brokered Address
+
+== Setting up the OpenShift environment
+
+It is assumed that:
+
+* Your OpenShift environment is configured for Fabric8 Maven Workflow, if not you can refer to my blog post https://github.com/rahmed-rh/fuse_on_OCP_7.5[Understand Fuse 7.5 on OpenShift].
+** You can easily setup the fuse on openshift using script https://raw.githubusercontent.com/rahmed-rh/fuse_on_OCP_7.5/master/scripts/install_fis_7.5.sh[install_fis_7.5.sh]
+* AMQ Online is installed on OpenShift environment,if not you can refer to my blog post ../understand[Understand AMQ Online]
+** You can easily setup the AMQ Online on OpenShift using script ../understand/script/install-amq-online.sh[install-amq-online.sh]
+
+To setup the test project you can run the following script.
+
+TIP: If the project where the amq-online operator installed is not amq-online-infra project, then modify the name in the script (you need to have admin access to the project)
+
+[source,bash]
+----
+$ src/main/resources/openshift/create_demo_app.sh
+----
+
+IMPORTANT: After you run this command please take note of last two lines in output
+
+For example output
+
+[source,bash]
+----
+oc get routes console -o 'jsonpath={.spec.host}' -n amq-online-infra
+console-amq-online-infra.apps.cluster-91e5.sandbox671.opentlc.com <1>
+
+oc get addressspace demo-space -o 'jsonpath={.status.endpointStatuses[?(@.name=="messaging")].externalHost}' -n amqp-demo
+messaging-6c9efcc-amq-online-infra.apps.cluster-91e5.sandbox671.opentlc.com <2>
+----
+<1> Console Url, which you will use to see the queue, topics, connections,etc
+<2> Messaging Endpoint which you will use to connect your application
+
+=== Defining the needed Yamls
+As Discussed in concepts each Tenant (application in our case), will create following set of objects.
+I will here on the Publisher Subscriber usecase, just to not loose focus (you can check source files for brokered Point-to-point usecase)
+
+. AddressSpace
++
+[source,yaml]
+----
+apiVersion: enmasse.io/v1beta1
+kind: AddressSpace
+metadata:
+  labels:
+    addressSpaceType: standard
+    type: address-space
+  name: demo-standard-space
+  namespace: amqp-demo
+spec:
+  type: standard
+  plan: standard-small
+  authenticationService:
+    name: standard-authservice
+  endpoints:
+  - name: messaging
+    service: messaging
+    expose:
+      type: route
+      routeServicePort: amqps
+      routeTlsTermination: passthrough
+    exports:
+    - kind: ConfigMap
+      name: spring-boot-camel-amq-config-standard
+    cert:
+      provider: openshift
+----
+. Address
+In the Pub/Sub usecase we will need to create two Addresses; One which is the topic, and subscription for each durable subscriber we want.
+Please note that we are using Standard Plan and "Named" durable subscriptions is the way to achieve this durability.
++
+[source,yaml]
+----
+kind: Address
+apiVersion: enmasse.io/v1beta1
+metadata:
+  labels:
+    addressType: topic
+  name: demo-standard-space.mytopic
+  namespace: amqp-demo
+spec:
+  address: mytopic
+  type: topic <1>
+  plan: standard-small-topic
+  forwarders: []
+----
+<1> This is the type of the Address is topic which will be used by producers
++
+[source,yaml]
+----
+kind: Address
+apiVersion: enmasse.io/v1beta1
+metadata:
+  labels:
+    addressType: subscription
+  name: demo-standard-space.mysub
+  namespace: amqp-demo
+spec:
+  address: mysub
+  type: subscription <1>
+  plan: standard-small-subscription
+  topic: mytopic <2>
+  forwarders: []
+----
+<1> This is the subscription (or the durable consumer), that will be used by a specific consumer to be durable.
+<2> Reference to the topic, created in previous step.
+
+. Define MessageUser
++
+[source,yaml]
+----
+apiVersion: user.enmasse.io/v1beta1
+kind: MessagingUser
+metadata:
+  name: demo-standard-space.demo-user
+  namespace: amqp-demo
+spec:
+  username: demo-user
+  authentication:
+    type: password
+    password: cGFzc3dvcmQ= # Base64 encode of 'password'
+  authorization:
+    - addresses:
+        - '*'
+      operations:
+        - recv
+        - send
+    - addresses: []
+      operations:
+        - manage
+    - addresses: []
+      operations:
+        - view
+----
+
+=== Explaining the Sample Java Code
+One key point is that the producer should produce to topic using topic name and consumer should consume from subscription using (topic_name::subscription_name) but as **queue**.
+
+[source,java]
+----
+from("timer:demo?period=3000")
+	.routeId("route-timer-topic-producer").streamCaching().tracing()
+		.setBody(simple("Hello World !!"))
+		.log("Sending Message ${body} to Topic amqp:topic:" + getTopicName()) <1>
+		.to("amqp:topic:" + getTopicName())
+.end();
+
+from("amqp:queue:" + getSubcsribtionName()) <2>
+	.routeId("route-from-topic-subscription").streamCaching().tracing()
+		.log("Recieved Message ${body} from Queue amqp:queue:" + getSubcsribtionName())
+.end();
+----
+<1> Produce using JMS Topic
+<2> Consume using JMS Queue
+
+== Running the example on Local Machine (Spring Boot)
+
+. Modify the amqp.serviceName key in application.properties to the value you of Messaging Endpoint
+. Then the following command will run the application
+
+[source,bash]
+----
+mvn spring-boot:run -Dspring.profiles.active=dev
+----
+
+== Running the example in OpenShift
+
+. The following command will package your app and run it on OpenShift:
++
+[source,bash]
+----
+mvn fabric8:deploy -P openshift
+----
++
+. To list all the running pods:
++
+[source,bash]
+----
+oc get pods
+----
