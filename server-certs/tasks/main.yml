@@ -1,0 +1,61 @@
+---
+# tasks file for amq-online
+- file:
+    path: "{{ _tmppath }}"
+    state: absent
+- file:
+    path: "{{ _tmppath }}"
+    state: directory
+- name: "Generate the private key file to sign the CSR"
+  openssl_privatekey:
+    path: "{{ _pempath }}"
+    passphrase: "{{ _private_key_password }}"
+    cipher: aes256
+- name: "Generate the CSR file signed with the private key"
+  openssl_csr:
+    path: "{{ _csrpath }}"
+    privatekey_path: "{{ _pempath }}"
+    privatekey_passphrase: "{{ _private_key_password }}"
+    common_name: "{{ _dnsname }}"
+    organization_name: "{{ _organization_name }}"
+    organizational_unit_name: "{{ _organizational_unit_name }}"
+    country_name: "{{ _country_name }}"
+- name: "Sign the CSR file as a CA to turn it into a certificate"
+  openssl_certificate:
+    path: "{{ _crtpath }}"
+    privatekey_path: "{{ _pempath }}"
+    privatekey_passphrase: "{{ _private_key_password }}"
+    csr_path: "{{ _csrpath }}"
+    provider: selfsigned
+- name: "Convert the signed certificate into a PKCS12 file with the attached private key"
+  openssl_pkcs12:
+    action: export
+    path: "{{ _pfxpath }}"
+    name: "{{ _dnsname }}"
+    privatekey_path: "{{ _pempath }}"
+    privatekey_passphrase: "{{ _private_key_password }}"
+    passphrase: "{{ _pkcs_password }}"
+    certificate_path: "{{ _crtpath }}"
+    state: present
+
+- name: Export Key from Certificate
+  shell: "openssl pkcs12 -in {{ _pfxpath }} -nocerts -nodes -out {{ _keypath }} -passin pass:{{ _private_key_password }}"
+  delegate_to: localhost
+
+
+- file:
+    path: "{{ _amqonline_app_remote_certificate_directory }}"
+    state: absent
+  when:
+    - _amqonline_app_certificate_copy_to_remote |bool
+
+- file:
+    path: "{{ _amqonline_app_remote_certificate_directory }}"
+    state: directory
+
+- name: Copy files to remote server location
+  when:
+    - _amqonline_app_certificate_copy_to_remote |bool
+  copy:
+    src: "{{ _tmppath }}/"
+    dest: "{{ _amqonline_app_remote_certificate_directory }}"
