@@ -15,6 +15,7 @@
 
 :sectnums:
 
+[[bookmark-understand-components]]
 == AMQ Online Components
 AMQ Online is a solution (Operator) to manage multiple components to provide the over all functionality of running self-service (Messaging as a Service) messaging platform on OpenShift
 
@@ -22,6 +23,7 @@ AMQ Online is a solution (Operator) to manage multiple components to provide the
 ** AMQ Broker is a full-featured, message-oriented middleware broker. It offers advanced addressing and queueing, fast message persistence, and high availability. AMQ Broker supports multiple protocols and operating environments, enabling you to use your existing assets.
 ** This is where all your brokers hosted and it is responsible for persisting messages.
 
+[[bookmark-amq-interconnect]]
 * AMQ Interconnect :
 ** AMQ Interconnect provides flexible routing of messages between AMQP-enabled endpoints, including clients, brokers, and standalone services. With a single connection into a network of AMQ Interconnect routers, a client can exchange messages with any other endpoint connected to the network.
 ** This is where all your routes hosted (it will come later when explaining address).
