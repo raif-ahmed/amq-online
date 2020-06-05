@@ -3,6 +3,8 @@
 The idea is to deploy AMQ online on top of OpenShift deployed in two data centers, and to configure
 AMQ Online connectors & Forwarders for communication between AMQ online deployed on separate clusters.
 
+== Understand AMQ Online multi-cluster deployment
+
 image::images/AMQ_Online_HL.png[]
 
 This is a proposed design that can mitigate the site fail-over or cross sites messaging solution.
@@ -26,6 +28,277 @@ First you need to create an address space connector. Then, you need to create an
 
 In this sample, I'm targeting the store and forward pattern where messages will go from one site to another suite to form a "kind of" backup queues on the other site. Those backup queues will be truncated or used based on the need failover, retention,.. (controlled through logic {cus} team will build).
 
-To fully understand the underlying details, we explained in <<../understand/README.adoc#bookmark-understand-components>> section that one of the underlying components in AMQ Online, is <<#bookmark-amq-interconnect>>. https://access.redhat.com/documentation/en-us/red_hat_amq/7.5/html-single/using_amq_interconnect/index#connecting-routers-router-rhel[AMQ Interconnect provides the infrastructure needed for Connecting qpid routers to another router in the router network], https://access.redhat.com/documentation/en-us/red_hat_amq/7.5/html-single/using_amq_interconnect/index#configuring-brokered-messaging-router-rhel[Also AMQ Interconnect allows clients connect to a router to send and receive messages, and the router routes the messages to or from queues on a message broker].
+To fully understand the underlying details, we explained in <<../understand/README.adoc#bookmark-understand-components,AMQ Online Components>> section that one of the underlying components in AMQ Online, is <<../understand/README.adoc#bookmark-amq-interconnect,AMQ Interconnect >>.
+
+https://access.redhat.com/documentation/en-us/red_hat_amq/7.5/html-single/using_amq_interconnect/index#connecting-routers-router-rhel[AMQ Interconnect provides the infrastructure] needed for Connecting qpid routers to another router in the router network,
+https://access.redhat.com/documentation/en-us/red_hat_amq/7.5/html-single/using_amq_interconnect/index#configuring-brokered-messaging-router-rhel[Also AMQ Interconnect allows clients connect to a router to send and receive messages], and the router routes the messages to or from queues on a message broker.
+
 
 This boilerplate code and configuration is abstracted through the usage of AMQ Online.
+
+== Deploy AMQ online multi-cluster using ansible
+To ease of the setup of this architecture, I developed an ansible playbook that automate the setup.
+
+In the following sections we will discuss important parts of both Ansible and AMQ online.
+
+=== Ansible role for AMQ online Operator
+The ansible role named "amq-online", is responsible for deploying AMQ Online.
+it contains all task and jinja files which deploy the AMQ online Operator to a target namespace.
+In high level, it install needed operator, example-plans, example-roles, and standard-authservice.
+
+.amq_online_operator_group.j2
+[source,yaml]
+----
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: "{{ _amqonline_name }}-op-grp"
+  namespace: "{{ _amqonline_infra_proj }}"
+spec:
+  targetNamespaces:
+  - "{{ _amqonline_infra_proj }}"
+----
+
+.amq_online_subscription.j2
+[source,yaml]
+----
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: "{{ _amqonline_name }}-subscription"
+  namespace: "{{ _amqonline_infra_proj }}"
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: amq-online
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+----
+
+=== [Optional] Ansible role to generate the server certs
+As the signed certificates was not available, a role "server-certs" to generate a self-signed certificate was developed.
+
+=== Ansible role to deploy demo namespace
+This is the most important part as in this one we wanted to deploy a Demo AMQ Online Application
+(tenant according to AMQ Online terminology) which will contain the following
+
+.role.j2
+[source,yaml]
+----
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ _amqonline_app_role_name }}
+  namespace: {{ _amqonline_app_proj }}
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "configmaps","secrets" ]
+    verbs: [ "create","get", "update", "patch" ]
+----
+.role_binding.j2
+[source,yaml]
+----
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ _amqonline_app_role_binding_name }}
+  namespace: {{ _amqonline_app_proj }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ _amqonline_app_role_name }}
+subjects:
+- kind: ServiceAccount
+  name: address-space-controller
+  namespace: "{{ _amqonline_infra_proj }}"
+----
+
+The role and rolebinding gives amqonline service account "address-space-controller" the privilage to create secrets and configmaps.
+This is needed so it can export the messaging endpoint information either as secrets or configmaps.
+
+.messaging_user.j2
+[source,yaml]
+----
+apiVersion: user.enmasse.io/v1beta1
+kind: MessagingUser
+metadata:
+  name: {{ _amqonline_app_address_space_name }}.{{ _amqonline_app_user_username }}
+  namespace: {{ _amqonline_app_proj }}
+spec:
+  username: {{ _amqonline_app_user_username }}
+  authentication:
+    type: password
+    password: {{ _amqonline_app_user_password }}
+  authorization:
+    - addresses:
+        - '*'
+      operations:
+        - recv
+        - send
+    - addresses: []
+      operations:
+        - manage
+    - addresses: []
+      operations:
+        - view
+----
+
+.address_space_remote.j2
+[source,yaml]
+----
+apiVersion: enmasse.io/v1beta1
+kind: AddressSpace
+metadata:
+  name: {{ _amqonline_app_address_space_name }}
+  namespace: {{ _amqonline_app_proj }}
+spec:
+  type: standard
+  plan: standard-unlimited
+  authenticationService:
+    name: standard-authservice
+  connectors:
+  - name: remote
+    endpointHosts: <1>
+    - host: {{ _amqonline_app_remote_messaging_route_url }}
+      port: 443
+    tls:
+      caCert: <2>
+        valueFromSecret:
+          name: {{ _amqonline_app_remote_messaging_secret_name }}
+          key: tls.crt
+      clientCert:
+        valueFromSecret:
+          name: {{ _amqonline_app_messaging_secret_name }}
+          key: tls.crt
+      clientKey:
+        valueFromSecret:
+          name: {{ _amqonline_app_messaging_secret_name }}
+          key: tls.key
+    credentials:
+      username:
+        value: {{ _amqonline_app_remote_messaging_user_username }}
+      password:
+        value: {{ _amqonline_app_remote_messaging_user_password }}
+    addresses:
+    - name: remoteQueue <3>
+      pattern: "*"
+  endpoints:
+  - name: messaging
+    service: messaging
+    expose:
+      type: route
+      routeServicePort: amqps
+      routeTlsTermination: passthrough
+      routeHost: {{ _amqonline_app_messaging_route_url }}
+    cert:
+      provider: certBundle
+      secretName : {{ _amqonline_app_messaging_secret_name }}
+    exports:
+    - kind: ConfigMap
+      name: {{ _amqonline_app_connection_info_cm }}
+  - name: console
+    service: console
+    expose:
+      type: route
+      routeTlsTermination: reencrypt
+      routeServicePort: https
+    cert:
+      provider: openshift
+----
+<1> define the connector that will connect to the remote server
+<2> The remote server CA, so ssl certificate can be trusted
+<3> The remote Queue definition
+
+.address_remote.j2
+[source,yaml]
+----
+apiVersion: enmasse.io/v1beta1
+kind: Address
+metadata:
+  name: {{ _amqonline_app_address_space_name }}.{{ _amqonline_app_address_queue_name }}
+  namespace: {{ _amqonline_app_proj }}
+spec:
+  address: {{ _amqonline_app_address_queue_name }}
+  plan: standard-small-queue
+  type: queue
+  forwarders:
+  - name: f1 <1>
+    remoteAddress: remote/myqueue
+    direction: out
+----
+<1> The forwarder that will forward messages to remote queue.
+
+=== Run Ansible playbook
+
+Some of the default values and assumptions, you will find in the install.yml
+
+[source,yaml]
+----
+vars:
+  amqonline_state: 'present'
+  amqonline_name: 'amq-online-infra'
+  amqonline_install_url: https://access.redhat.com/node/5005911/423/0/16833831
+  amqonline_infra_proj: amq-online-infra
+  amqonline_app_messaging_route_url: 'demo-app-messaging.apps.demo2-cluster.openshift.com'
+  amqonline_app_proj: 'demo-amqonline'
+  amqonline_app_name: 'demo-app'
+  amqonline_app_address_queue_name: 'myqueue'
+  amqonline_app_connection_info_cm: 'messaging-connection-cm'
+  amqonline_app_user_username: 'demo-user'
+  amqonline_app_user_password: cGFzc3dvcmQ= # Base64 encode of 'password'
+  amqonline_app_certificate_directory: '/tmp/certs'
+  # it assume that crt and key file names are same but extensions is .crt & .key
+  amqonline_app_certificate_file_name: 'messaging-endpoint_cluster-4636'
+  amqonline_app_certificate_country_name: 'NL'
+  amqonline_app_certificate_organization_name: 'Demo Organization'
+  amqonline_app_certificate_organizational_unit_name: 'Demo Unit'
+  amqonline_app_certificate_private_key_password: 'passw0rd'
+  amqonline_app_certificate_copy_to_remote: 'no'
+  amqonline_app_state: 'present'
+  # use in case you want to deploy an app that have addressspace connectors and forwarders.
+  amqonline_app_remote_deploy: 'no'
+  amqonline_app_remote_messaging_route_url: 'demo-app-messaging.apps.demo1-cluster.openshift.com'
+  amqonline_app_remote_messaging_user_username: 'demo-user'
+  amqonline_app_remote_messaging_user_password: 'password'
+  amqonline_app_remote_certificate_directory: '/tmp/certs'
+  # it assume that crt and key file names are same but extensions is .crt & .key
+  amqonline_app_remote_certificate_file_name: 'demo-app'
+----
+
+==== To configure First OpenShift cluster
+run the following commands
+
+[source,bash]
+----
+export K8S_AUTH_HOST="https://api.cluster-ad86.ad86.sandbox81.opentlc.com:6443"
+export K8S_AUTH_API_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+export K8S_AUTH_VERIFY_SSL=no
+
+ansible-playbook install.yml \
+-e amqonline_app_messaging_route_url="demo-app-messaging.apps.cluster-ad86.ad86.sandbox81.opentlc.com" \ <1>
+-e amqonline_app_certificate_file_name="messaging-endpoint_cluster-ad86" <2>
+----
+<1> amqonline_app_messaging_route_url: is the messaging end point route (*.apps.<cluster-dns>)
+<2> amqonline_app_certificate_file_name: The self signed certificate name, that will be generated
+
+==== To configure Second OpenShift cluster
+Ensure SSL certificates of first cluster is generated.
+
+[source,bash]
+----
+export K8S_AUTH_HOST="https://api.cluster-e77b.e77b.sandbox1014.opentlc.com:6443"
+export K8S_AUTH_API_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+export K8S_AUTH_VERIFY_SSL=no
+
+ansible-playbook install.yml \
+-e amqonline_app_messaging_route_url="demo-app-messaging.apps.cluster-e77b.e77b.sandbox1014.opentlc.com" \ <1>
+-e amqonline_app_certificate_file_name="messaging-endpoint_cluster-e77b" \ <2>
+-e amqonline_app_remote_deploy="yes" \ <3>
+-e amqonline_app_remote_messaging_route_url="demo-app-messaging.apps.cluster-ad86.ad86.sandbox81.opentlc.com" \ <4>
+-e amqonline_app_remote_certificate_file_name="messaging-endpoint_cluster-ad86" <5>
+----
+<1> amqonline_app_messaging_route_url: is the messaging end point route (*.apps.<cluster-dns>)
+<2> amqonline_app_certificate_file_name: The self signed certificate name, that will be generated
+<3> amqonline_app_remote_deploy: Indicate to deploy the demo app with needed connector and forwarder
+<4> amqonline_app_remote_messaging_route_url: is the messaging end point route of the other remote server, to which the connector will be created
+<5> amqonline_app_remote_certificate_file_name: The certificate file name of the remote server end point

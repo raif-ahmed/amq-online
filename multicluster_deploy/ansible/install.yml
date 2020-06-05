@@ -18,8 +18,8 @@
     # it assume that crt and key file names are same but extensions is .crt & .key
     amqonline_app_certificate_file_name: 'messaging-endpoint_cluster-4636'
     amqonline_app_certificate_country_name: 'NL'
-    amqonline_app_certificate_organization_name: 'Rechtspraak'
-    amqonline_app_certificate_organizational_unit_name: 'IVO'
+    amqonline_app_certificate_organization_name: 'Demo Organization'
+    amqonline_app_certificate_organizational_unit_name: 'Demo Unit'
     amqonline_app_certificate_private_key_password: 'passw0rd'
     amqonline_app_certificate_copy_to_remote: 'no'
     amqonline_app_state: 'present'
