@@ -28,3 +28,10 @@ There are 2 usecase which will explorer
  * Point-to-point usecase (Anycast) built using Brokered Address
 
 link:build_java[Building A Java Sample]
+
+= AMQ Online Multi-cluster deployment
+
+A demo application using Ansible playbooks that deploy AMQ online on top of OpenShift deployed in two data centers, and configure
+AMQ Online connectors & Forwarders for communication between AMQ online deployed on separate clusters.
+
+link:multicluster_deploy[AMQ Online Multi-cluster deployment]
